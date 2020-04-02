@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/schemaspy/src/main/java/org/schemaspy/Main.java"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="1"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.schemaspy.Main"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="schemaspy"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-nologo  -imageformat svg -desc &quot;Database Info generate use postgresql for core table&quot; -t pgsql11 -host localhost -port 5432 -db idempiere-7.1 -u adempiere -p adempiere -s adempiere -i &quot;(ad_column|ad_table|ad_window)&quot; -o /tmp -dp ${workspace_loc:schemaspy}/ext-lib/postgresql.jar"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="schemaspy"/>
+    <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
+    <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:schemaspy}"/>
+</launchConfiguration>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/schemaspy/src/main/java/org/schemaspy/Main.java"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="1"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.schemaspy.Main"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="schemaspy"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-nologo  -imageformat svg -desc &quot;Database Info generate use oracle for core table&quot; -t orathin -host localhost -port 1523 -db orcl -u &quot;ADEMPIERE&quot; -p adempiere -s &quot;1ADEMPIERE&quot; -i &quot;(AD_COLUMN|AD_TABLE|AD_WINDOW)&quot; -o /tmp -dp ${workspace_loc:schemaspy}/ext-lib/ojdbc7.jar -cat %"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="schemaspy"/>
+    <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
+    <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:schemaspy}"/>
+</launchConfiguration>
