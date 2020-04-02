@@ -42,7 +42,7 @@ jobs:
         sudo su -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
         wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
         sudo apt-get -q update
-        sudo apt-get install postgresql-12 postgresql-contrib maven
+        sudo apt-get -q install postgresql-12 postgresql-contrib maven graphviz
         sudo pg_ctlcluster 12 main start
 
         sudo su - postgres -c psql <<EOF
@@ -71,7 +71,7 @@ jobs:
         cd $GITHUB_WORKSPACE/idempiere/org.idempiere.parent
         mvn install
         cd $GITHUB_WORKSPACE/idempiere
-        mvn verify
+        mvn -q verify
 
         ls $GITHUB_WORKSPACE/idempiere/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
         dropdb --if-exists -h localhost -p 5432 -U adempiere "idempiere-7.1"
@@ -115,10 +115,10 @@ jobs:
         ./RUN_SyncDB.sh
 
         cd $GITHUB_WORKSPACE/schemaspy
-        ./mvnw package
+        ./mvnw -q package
 
         cd $GITHUB_WORKSPACE
-        wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.12/postgresql-42.2.12.jar
+        wget -q https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.12/postgresql-42.2.12.jar
         cd $GITHUB_WORKSPACE/schemaspy/target
         mkdir -p $GITHUB_WORKSPACE/erd
         java -jar schemaspy-6.1.1-SNAPSHOT.jar \
