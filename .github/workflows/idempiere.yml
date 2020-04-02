@@ -156,3 +156,4 @@ jobs:
         asset_path: ./idempiere-erd.tar.gz
         asset_name: idempiere-erd.tar.gz
         asset_content_type: application/gz
+
