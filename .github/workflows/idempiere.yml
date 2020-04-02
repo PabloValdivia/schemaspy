@@ -1,0 +1,158 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Build ERD For Idempiere
+
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
+on:
+  push:
+    branches: [ idempiere ]
+  pull_request:
+    branches: [ idempiere ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
+    steps:
+    # uses: https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+
+    # https://github.com/actions/checkout
+    - name: Checkout schemaspy
+      uses: actions/checkout@v2
+      with:
+        path: schemaspy
+
+    - name: Checkout idempiere
+      uses: actions/checkout@v2
+      with:
+        repository: idempiere/idempiere
+        path: idempiere
+
+    # https://github.com/marketplace/actions/setup-java-jdk
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: Setup Env
+      run: |
+        sudo su -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+        sudo apt-get -q update
+        sudo apt-get install postgresql-12 postgresql-contrib maven
+        sudo pg_ctlcluster 12 main start
+
+        sudo su - postgres -c psql <<EOF
+        CREATE ROLE adempiere LOGIN PASSWORD 'adempiere' SUPERUSER CREATEDB VALID UNTIL 'infinity';
+        EOF
+
+        sudo su - postgres -c psql <<EOF
+        ALTER ROLE adempiere SET search_path = adempiere, pg_catalog;
+        EOF
+
+        DATE_STR=$( date +%Y%m%d_%H%M%S )
+        hbaPath=`sudo find /etc/postgresql/ -name pg_hba.conf -type f`
+
+        echo "host    all    adempiere  ::1/128          md5
+        host    all    adempiere  127.0.0.1/32     md5" | sudo cat - $hbaPath > /tmp/${DATE_STR}_pg_hba.temp
+        sudo cp /tmp/${DATE_STR}_pg_hba.temp $hbaPath
+
+        sudo pg_ctlcluster 12 main restart
+
+        touch ~/.pgpass
+        echo "localhost:5432:*:adempiere:adempiere" >> ~/.pgpass
+        chmod 400 ~/.pgpass
+
+    - name: Main action
+      run: |
+        cd $GITHUB_WORKSPACE/idempiere/org.idempiere.parent
+        mvn install
+        cd $GITHUB_WORKSPACE/idempiere
+        mvn verify
+
+        ls $GITHUB_WORKSPACE/idempiere/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
+        dropdb --if-exists -h localhost -p 5432 -U adempiere "idempiere-7.1"
+        createdb -h localhost -p 5432 -U adempiere --template="template0" -E UNICODE --lc-collate en_US.UTF-8 --lc-ctype en_US.UTF-8 -O adempiere "idempiere-7.1"
+        psql -q -h localhost -p 5432 -U adempiere -d "idempiere-7.1" -c "ALTER ROLE adempiere SET search_path TO adempiere, pg_catalog"
+        psql -q -h localhost -p 5432 -U adempiere -d "idempiere-7.1" -c 'CREATE EXTENSION "uuid-ossp"'
+        cd $GITHUB_WORKSPACE
+        jar xvf $GITHUB_WORKSPACE/idempiere/org.adempiere.server-feature/data/seed/Adempiere_pg.jar
+        psql -q -h localhost -p 5432 -U adempiere -d "idempiere-7.1" -f $GITHUB_WORKSPACE/Adempiere_pg.dmp
+
+        cd $GITHUB_WORKSPACE/idempiere/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
+        ./console-setup-alt.sh <<EOF
+
+
+        myPassword
+        cn-hieplq
+        ou-iDempiereUser
+        o-hieplq
+        l-MyTown
+        s-myCity
+        c-VN
+        0.0.0.0
+        8080
+        8443
+        Y
+        2
+        localhost
+        5432
+        idempiere-7.1
+        adempiere
+        adempiere
+
+        localhost
+        admin
+        admin
+        admin@admin
+        Y
+        EOF
+
+        cd utils
+        ./RUN_SyncDB.sh
+
+        cd $GITHUB_WORKSPACE/schemaspy
+        ./mvnw package
+
+        cd $GITHUB_WORKSPACE
+        wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.12/postgresql-42.2.12.jar
+        cd $GITHUB_WORKSPACE/schemaspy/target
+        mkdir -p $GITHUB_WORKSPACE/erd
+        java -jar schemaspy-6.1.1-SNAPSHOT.jar \
+            -nologo \
+            -imageformat svg \
+            -desc "Database Info generate use postgresql for core table" \
+            -t pgsql11 \
+            -host localhost -port 5432 -db idempiere-7.1 -u adempiere -p adempiere -s adempiere \
+            -i "(ad_column|ad_table|ad_window)" \
+            -o $GITHUB_WORKSPACE/erd \
+            -dp $GITHUB_WORKSPACE/postgresql-42.2.12.jar
+
+        cd $GITHUB_WORKSPACE
+        tar -czf idempiere-erd.tar.gz erd
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}${{ github.run_id }}
+        # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./idempiere-erd.tar.gz
+        asset_name: idempiere-erd.tar.gz
+        asset_content_type: application/gz
